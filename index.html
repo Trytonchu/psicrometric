@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Psicrométrica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #1a1a1a;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 153, 153, 0.3);
+            border: 1px solid #009999;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #009999;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .input-section {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        
+        .section-title {
+            font-size: 1.3em;
+            color: #009999;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px solid #009999;
+            padding-bottom: 8px;
+        }
+        
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            color: #cccccc;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        
+        input, select {
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background: #333;
+            color: #fff;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #009999;
+            box-shadow: 0 0 5px rgba(0, 153, 153, 0.5);
+        }
+        
+        input.has-value {
+            border-color: #009999;
+            background: #2a3a3a;
+        }
+        
+        button {
+            background: #009999;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+        }
+        
+        button:hover {
+            background: #00cccc;
+        }
+        
+        .results {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        
+        .results h3 {
+            color: #009999;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .result-item {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            border-left: 3px solid #009999;
+        }
+        
+        .result-label {
+            color: #ccc;
+        }
+        
+        .result-value {
+            color: #009999;
+            font-weight: bold;
+        }
+        
+        .chart-container {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+        
+        #psychrometricChart {
+            border: 1px solid #555;
+            border-radius: 5px;
+            background: #1a1a1a;
+        }
+        
+        .error {
+            background: #4a1a1a;
+            border: 1px solid #cc3333;
+            color: #ffaaaa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .info {
+            background: #1a2a4a;
+            border: 1px solid #3399cc;
+            color: #aaccff;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌡️ Calculadora Psicrométrica</h1>
+        
+        <div class="info">
+            <strong>Instrucciones:</strong> Introduce valores en CUALQUIER combinación de 2 campos. El sistema calculará automáticamente todas las demás propiedades.
+        </div>
+        
+        <div class="input-section">
+            <div class="section-title">Propiedades Psicrométricas</div>
+            
+            <div class="input-grid">
+                <div class="form-group">
+                    <label>Temperatura de Bulbo Seco (°C)</label>
+                    <input type="number" id="tempSeca" step="0.1" placeholder="Ej: 25">
+                </div>
+                
+                <div class="form-group">
+                    <label>Humedad Relativa (%)</label>
+                    <input type="number" id="humedadRel" step="0.1" min="0" max="100" placeholder="Ej: 50">
+                </div>
+                
+                <div class="form-group">
+                    <label>Humedad Absoluta (g/kg)</label>
+                    <input type="number" id="humedadAbs" step="0.01" min="0" placeholder="Ej: 9.88">
+                </div>
+                
+                <div class="form-group">
+                    <label>Temperatura de Punto de Rocío (°C)</label>
+                    <input type="number" id="tempRocio" step="0.1" placeholder="Ej: 14">
+                </div>
+                
+                <div class="form-group">
+                    <label>Entalpía (kJ/kg aire seco)</label>
+                    <input type="number" id="entalpia" step="0.1" placeholder="Ej: 50.2">
+                </div>
+                
+                <div class="form-group">
+                    <label>Altitud (m s.n.m.)</label>
+                    <input type="number" id="altitud" value="0">
+                </div>
+            </div>
+        </div>
+        
+        <button onclick="calcular()">Calcular</button>
+        
+        <div class="results" id="resultados" style="display: none;">
+            <h3>Resultados</h3>
+            <div class="result-grid" id="resultGrid"></div>
+        </div>
+        
+        <div class="chart-container" id="chartContainer" style="display: none;">
+            <h3>Carta Psicrométrica</h3>
+            <canvas id="psychrometricChart" width="600" height="400"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Funciones básicas de psicrometría
+        function presionSaturacion(T) {
+            // Ecuación simple pero precisa
+            return 610.78 * Math.exp((17.27 * T) / (T + 237.3));
+        }
+        
+        function presionAtmosferica(altitud) {
+            return 101325 * Math.pow(1 - 0.0065 * altitud / 288.15, 5.255);
+        }
+        
+        function puntoRocio(pv) {
+            if (pv <= 0) return -999;
+            const ln_pv = Math.log(pv / 610.78);
+            return (237.3 * ln_pv) / (17.27 - ln_pv);
+        }
+        
+        function calcularPropiedades(T_db, W, P_atm) {
+            // Validar entradas
+            if (isNaN(T_db) || isNaN(W) || isNaN(P_atm)) {
+                throw new Error('Valores de entrada inválidos');
+            }
+            
+            // Asegurar que W esté en kg/kg (no g/kg)
+            if (W > 1) W = W / 1000;
+            
+            const Pv = (P_atm * W) / (0.622 + W);
+            const Psat = presionSaturacion(T_db);
+            const RH = Math.min(100, (Pv / Psat) * 100);
+            
+            const T_dp = puntoRocio(Pv);
+            const h = 1.006 * T_db + W * (2501 + 1.86 * T_db);
+            const v = (287.058 * (T_db + 273.15) / P_atm) * (1 + 1.607858 * W);
+            
+            return {
+                T_db: T_db,
+                T_dp: T_dp,
+                RH: RH,
+                W: W * 1000, // Convertir a g/kg para mostrar
+                h: h,
+                v: v
+            };
+        }
+        
+        function obtenerValores() {
+            const valores = {};
+            let contador = 0;
+            
+            // Obtener valores de los campos
+            const T_db = parseFloat(document.getElementById('tempSeca').value);
+            const RH = parseFloat(document.getElementById('humedadRel').value);
+            const W = parseFloat(document.getElementById('humedadAbs').value);
+            const T_dp = parseFloat(document.getElementById('tempRocio').value);
+            const h = parseFloat(document.getElementById('entalpia').value);
+            
+            if (!isNaN(T_db)) { valores.T_db = T_db; contador++; }
+            if (!isNaN(RH)) { valores.RH = RH; contador++; }
+            if (!isNaN(W)) { valores.W = W; contador++; }
+            if (!isNaN(T_dp)) { valores.T_dp = T_dp; contador++; }
+            if (!isNaN(h)) { valores.h = h; contador++; }
+            
+            return { valores, contador };
+        }
+        
+        function calcular() {
+            try {
+                const { valores, contador } = obtenerValores();
+                
+                if (contador < 2) {
+                    mostrarError('Necesitas introducir al menos 2 valores');
+                    return;
+                }
+                
+                const altitud = parseFloat(document.getElementById('altitud').value) || 0;
+                const P_atm = presionAtmosferica(altitud);
+                
+                let resultado;
+                
+                // Resolver según la combinación disponible
+                if (valores.T_db !== undefined && valores.RH !== undefined) {
+                    // T_db + RH
+                    const Psat = presionSaturacion(valores.T_db);
+                    const Pv = (valores.RH / 100) * Psat;
+                    const W = 0.622 * Pv / (P_atm - Pv);
+                    resultado = calcularPropiedades(valores.T_db, W, P_atm);
+                    
+                } else if (valores.T_db !== undefined && valores.W !== undefined) {
+                    // T_db + W
+                    resultado = calcularPropiedades(valores.T_db, valores.W / 1000, P_atm);
+                    
+                } else if (valores.T_db !== undefined && valores.T_dp !== undefined) {
+                    // T_db + T_dp
+                    const Pv = presionSaturacion(valores.T_dp);
+                    const W = 0.622 * Pv / (P_atm - Pv);
+                    resultado = calcularPropiedades(valores.T_db, W, P_atm);
+                    
+                } else if (valores.RH !== undefined && valores.W !== undefined) {
+                    // RH + W - iteración para encontrar T_db
+                    let T_db_estimado = 20;
+                    const W_kg = valores.W / 1000;
+                    
+                    for (let i = 0; i < 50; i++) {
+                        const Psat = presionSaturacion(T_db_estimado);
+                        const Pv = (P_atm * W_kg) / (0.622 + W_kg);
+                        const RH_calculado = (Pv / Psat) * 100;
+                        
+                        if (Math.abs(RH_calculado - valores.RH) < 0.1) break;
+                        T_db_estimado += (valores.RH - RH_calculado) * 0.05;
+                    }
+                    
+                    resultado = calcularPropiedades(T_db_estimado, W_kg, P_atm);
+                    
+                } else {
+                    throw new Error('Combinación no soportada. Usa: T_seca+HR, T_seca+W, T_seca+T_rocío, o HR+W');
+                }
+                
+                mostrarResultados(resultado);
+                mostrarCarta(resultado);
+                
+            } catch (error) {
+                mostrarError('Error: ' + error.message);
+            }
+        }
+        
+        function mostrarResultados(resultado) {
+            const grid = document.getElementById('resultGrid');
+            grid.innerHTML = '';
+            
+            const propiedades = [
+                { label: 'Temperatura Bulbo Seco', valor: resultado.T_db.toFixed(2), unidad: '°C' },
+                { label: 'Temperatura Punto de Rocío', valor: resultado.T_dp.toFixed(2), unidad: '°C' },
+                { label: 'Humedad Relativa', valor: resultado.RH.toFixed(1), unidad: '%' },
+                { label: 'Humedad Absoluta', valor: resultado.W.toFixed(2), unidad: 'g/kg' },
+                { label: 'Entalpía', valor: resultado.h.toFixed(1), unidad: 'kJ/kg' },
+                { label: 'Volumen Específico', valor: resultado.v.toFixed(4), unidad: 'm³/kg' }
+            ];
+            
+            propiedades.forEach(prop => {
+                const item = document.createElement('div');
+                item.className = 'result-item';
+                item.innerHTML = `
+                    <span class="result-label">${prop.label}</span>
+                    <span class="result-value">${prop.valor} ${prop.unidad}</span>
+                `;
+                grid.appendChild(item);
+            });
+            
+            document.getElementById('resultados').style.display = 'block';
+        }
+        
+        function mostrarCarta(resultado) {
+            // Guardar resultado para usar en dibujarPunto
+            window.ultimoResultado = resultado;
+            
+            document.getElementById('chartContainer').style.display = 'block';
+            dibujarCarta();
+            
+            if (resultado.T_db >= 0 && resultado.T_db <= 50 && resultado.W >= 0 && resultado.W <= 30) {
+                dibujarPunto(resultado.T_db, resultado.W);
+            }
+        }
+        
+        function dibujarCarta() {
+            const canvas = document.getElementById('psychrometricChart');
+            const ctx = canvas.getContext('2d');
+            
+            ctx.clearRect(0, 0, 600, 400);
+            
+            // Configuración
+            const margin = { top: 30, right: 50, bottom: 50, left: 60 };
+            const width = 600 - margin.left - margin.right;
+            const height = 400 - margin.top - margin.bottom;
+            
+            function escalaX(temp) {
+                return margin.left + (temp / 50) * width;
+            }
+            
+            function escalaY(humedad) {
+                return margin.top + height - (humedad / 30) * height;
+            }
+            
+            // Fondo
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, 600, 400);
+            
+            // Grid
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 1;
+            
+            for (let t = 0; t <= 50; t += 10) {
+                const x = escalaX(t);
+                ctx.beginPath();
+                ctx.moveTo(x, margin.top);
+                ctx.lineTo(x, margin.top + height);
+                ctx.stroke();
+            }
+            
+            for (let w = 0; w <= 30; w += 5) {
+                const y = escalaY(w);
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y);
+                ctx.lineTo(margin.left + width, y);
+                ctx.stroke();
+            }
+            
+            // Ejes
+            ctx.strokeStyle = '#009999';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top + height);
+            ctx.lineTo(margin.left + width, margin.top + height);
+            ctx.moveTo(margin.left, margin.top);
+            ctx.lineTo(margin.left, margin.top + height);
+            ctx.stroke();
+            
+            // Líneas de Humedad Relativa
+            ctx.strokeStyle = '#009999';
+            ctx.lineWidth = 1.5;
+            
+            for (let rh = 10; rh <= 100; rh += 10) {
+                ctx.beginPath();
+                let primera = true;
+                
+                for (let t = 0; t <= 50; t += 0.5) {
+                    const Psat = presionSaturacion(t);
+                    const Pv = (rh / 100) * Psat;
+                    const W = 0.622 * Pv / (101325 - Pv) * 1000;
+                    
+                    if (W >= 0 && W <= 30) {
+                        const x = escalaX(t);
+                        const y = escalaY(W);
+                        
+                        if (primera) {
+                            ctx.moveTo(x, y);
+                            primera = false;
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                }
+                ctx.stroke();
+                
+                // Etiquetas de HR
+                if (rh % 20 === 0) {
+                    const temp = 45;
+                    const Psat = presionSaturacion(temp);
+                    const Pv = (rh / 100) * Psat;
+                    const W = 0.622 * Pv / (101325 - Pv) * 1000;
+                    
+                    if (W <= 30) {
+                        const x = escalaX(temp);
+                        const y = escalaY(W);
+                        
+                        ctx.fillStyle = '#009999';
+                        ctx.fillRect(x - 12, y - 8, 24, 16);
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 10px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(rh + '%', x, y + 3);
+                    }
+                }
+            }
+            
+            // Líneas de Entalpía (diagonales)
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            
+            for (let h = 20; h <= 100; h += 20) {
+                ctx.beginPath();
+                let primera = true;
+                
+                for (let t = 0; t <= 50; t += 1) {
+                    // h = 1.006*T + W*(2501 + 1.86*T)
+                    // Resolviendo para W: W = (h - 1.006*T) / (2501 + 1.86*T)
+                    const W_calc = (h - 1.006 * t) / (2501 + 1.86 * t) * 1000;
+                    
+                    if (W_calc >= 0 && W_calc <= 30) {
+                        const x = escalaX(t);
+                        const y = escalaY(W_calc);
+                        
+                        if (primera) {
+                            ctx.moveTo(x, y);
+                            primera = false;
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                }
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            
+            // Etiquetas de los ejes
+            ctx.fillStyle = '#ccc';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            
+            // Etiquetas eje X (temperatura)
+            for (let t = 0; t <= 50; t += 10) {
+                ctx.fillText(t + '°C', escalaX(t), margin.top + height + 20);
+            }
+            
+            // Título eje X
+            ctx.fillStyle = '#009999';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('Temperatura de Bulbo Seco (°C)', margin.left + width/2, margin.top + height + 40);
+            
+            // Etiquetas eje Y (humedad absoluta)
+            ctx.fillStyle = '#ccc';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            for (let w = 0; w <= 30; w += 5) {
+                ctx.fillText(w + '', margin.left - 10, escalaY(w) + 4);
+            }
+            
+            // Título eje Y
+            ctx.save();
+            ctx.translate(20, margin.top + height/2);
+            ctx.rotate(-Math.PI/2);
+            ctx.fillStyle = '#009999';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Humedad Absoluta (g/kg)', 0, 0);
+            ctx.restore();
+            
+            window.escalaX = escalaX;
+            window.escalaY = escalaY;
+        }
+        
+        function dibujarPunto(temp, humedad) {
+            const canvas = document.getElementById('psychrometricChart');
+            const ctx = canvas.getContext('2d');
+            
+            const x = window.escalaX(temp);
+            const y = window.escalaY(humedad);
+            
+            // Líneas de construcción como en diagramas reales
+            ctx.strokeStyle = '#ffaa00';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            
+            // Línea vertical (temperatura constante)
+            ctx.beginPath();
+            ctx.moveTo(x, 30);
+            ctx.lineTo(x, y - 8);
+            ctx.stroke();
+            
+            // Línea horizontal (humedad absoluta constante)
+            ctx.beginPath();
+            ctx.moveTo(60, y);
+            ctx.lineTo(x - 8, y);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+            
+            // Punto principal
+            ctx.fillStyle = '#ff6600';
+            ctx.beginPath();
+            ctx.arc(x, y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Obtener resultado actual para mostrar valores
+            const resultado = window.ultimoResultado;
+            if (!resultado) return;
+            
+            // Cuadro con información del punto
+            const info = [
+                `T: ${resultado.T_db.toFixed(1)}°C`,
+                `HR: ${resultado.RH.toFixed(1)}%`,
+                `W: ${resultado.W.toFixed(1)}g/kg`,
+                `h: ${resultado.h.toFixed(1)}kJ/kg`,
+                `Td: ${resultado.T_dp.toFixed(1)}°C`
+            ];
+            
+            // Posición del cuadro de información
+            let infoX = x + 15;
+            let infoY = y - 60;
+            
+            // Ajustar posición si se sale del canvas
+            if (infoX + 120 > 600) infoX = x - 135;
+            if (infoY < 30) infoY = y + 15;
+            
+            // Fondo del cuadro
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(infoX, infoY, 120, info.length * 16 + 10);
+            
+            // Borde del cuadro
+            ctx.strokeStyle = '#009999';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(infoX, infoY, 120, info.length * 16 + 10);
+            
+            // Texto de información
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'left';
+            
+            info.forEach((texto, i) => {
+                ctx.fillText(texto, infoX + 5, infoY + 15 + i * 16);
+            });
+            
+            // Línea conectora del punto al cuadro
+            ctx.strokeStyle = '#009999';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(infoX, infoY + 10);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Etiquetas en los ejes para el punto específico
+            // Etiqueta en eje X
+            ctx.fillStyle = '#ff6600';
+            ctx.fillRect(x - 15, 30 + 380, 30, 16);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(temp.toFixed(1), x, 30 + 391);
+            
+            // Etiqueta en eje Y
+            ctx.fillStyle = '#ff6600';
+            ctx.fillRect(20, y - 8, 35, 16);
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.fillText(humedad.toFixed(1), 37, y + 3);
+        }
+        
+        function mostrarError(mensaje) {
+            // Limpiar errores anteriores
+            document.querySelectorAll('.error').forEach(el => el.remove());
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = mensaje;
+            document.querySelector('.container').appendChild(errorDiv);
+            
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+        
+        // Actualizar estilos de campos con valores
+        document.addEventListener('input', function(e) {
+            if (e.target.type === 'number') {
+                if (e.target.value.trim() !== '') {
+                    e.target.classList.add('has-value');
+                } else {
+                    e.target.classList.remove('has-value');
+                }
+            }
+        });
+        
+        // Ejemplo inicial
+        window.onload = function() {
+            document.getElementById('tempSeca').value = '25';
+            document.getElementById('humedadRel').value = '50';
+            document.getElementById('tempSeca').classList.add('has-value');
+            document.getElementById('humedadRel').classList.add('has-value');
+            calcular();
+        };
+    </script>
+</body>
+</html>
